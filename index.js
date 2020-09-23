@@ -39,6 +39,7 @@ app.post("/parse", upload.single("file"), async (req, res) => {
   let options = {
     mode: "text",
     pythonOptions: ["-u"], // get print results in real-time
+    parser: console.log,
     scriptPath: "./scripts",
     args: ["--logpath", uploadFilePath, "--outpath", parsedFilePath],
   };
