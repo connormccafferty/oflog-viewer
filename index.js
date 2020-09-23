@@ -1,10 +1,11 @@
 const express = require("express");
-var bodyParser = require("body-parser");
-var multer = require("multer");
-var upload = multer();
+const bodyParser = require("body-parser");
+const multer = require("multer");
+const upload = multer();
 const { spawn } = require("child_process");
-var path = require("path");
+const path = require("path");
 const fs = require("fs");
+const { launch, connect } = require("hadouken-js-adapter");
 
 const app = express();
 
@@ -44,20 +45,40 @@ app.post("/parse", upload.single("file"), async (req, res) => {
     "--outpath",
     parsedFilePath,
   ]);
+
   // // collect data from script
   python.stdout.on("data", function (data) {
     console.log("python script success");
   });
+
   // // in close event we are sure that stream from child process is closed
   python.on("close", (code) => {
     console.log(`child process close all stdio with code ${code}`);
     // send data to browser
     res.sendFile(path.join(__dirname + parsedFilePath.slice(1)));
   });
+
   res.status(200);
 });
 
-app.listen(port, () =>
-  console.log(`Example app listening on port 
- ${port}!`)
-);
+const manifestUrl = `http://localhost:${port}/app.json`;
+
+app.listen(port, async () => {
+  console.log(`Example app listening on port ${port}!`);
+  try {
+    //Once the server is running we can launch OpenFin and retrieve the port.
+    const port = await launch({ manifestUrl });
+
+    //We will use the port to connect from Node to determine when OpenFin exists.
+    const fin = await connect({
+      uuid: "server-connection", //Supply an addressable Id for the connection
+      address: `ws://localhost:${port}`, //Connect to the given port.
+      nonPersistent: true, //We want OpenFin to exit as our application exists.
+    });
+
+    //Once OpenFin exists we shut down the server.
+    fin.once("disconnected", process.exit);
+  } catch (err) {
+    console.error(err);
+  }
+});
