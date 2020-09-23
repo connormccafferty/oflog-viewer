@@ -6,7 +6,7 @@
     "autoShow": true
   },
   "runtime": {
-    "arguments": "--disable-web-security --inspect",
+    "arguments": "--disable-web-security --inspect --security-realm=OFLOG_VIEWER",
     "version": "stable"
   },
   "shortcut": {}

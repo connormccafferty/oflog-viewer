@@ -21,7 +21,6 @@ app.get("/", (req, res) => {
 });
 
 app.post("/parse", upload.single("file"), async (req, res) => {
-  // console.log(req.file);
   let uploadFilePath = `./temp/${req.file.originalname}`;
   let parsedFilePath = `./temp/${req.file.originalname.slice(
     0,
@@ -40,18 +39,19 @@ app.post("/parse", upload.single("file"), async (req, res) => {
   // spawn new child process to call the python script
   const python = spawn("python", [
     "diagnostics_parser.py",
+    "--noconsole",
     "--logpath",
     uploadFilePath,
     "--outpath",
     parsedFilePath,
   ]);
 
-  // // collect data from script
+  // collect data from script
   python.stdout.on("data", function (data) {
     console.log("python script success");
   });
 
-  // // in close event we are sure that stream from child process is closed
+  // in close event we are sure that stream from child process is closed
   python.on("close", (code) => {
     console.log(`child process close all stdio with code ${code}`);
     // send data to browser
@@ -73,7 +73,7 @@ app.listen(port, async () => {
     const fin = await connect({
       uuid: "server-connection", //Supply an addressable Id for the connection
       address: `ws://localhost:${port}`, //Connect to the given port.
-      nonPersistent: true, //We want OpenFin to exit as our application exists.
+      nonPersistent: true, //We want OpenFin to exit as our application exits.
     });
 
     //Once OpenFin exists we shut down the server.

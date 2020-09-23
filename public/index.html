@@ -39,7 +39,6 @@
     >
       <div
         id="drop_zone"
-        ondrop="dropHandler(event);"
         ondragover="dragOverHandler(event);"
         style="
           display: flex;
@@ -51,7 +50,7 @@
         "
       >
         <h2 style="color: #e2e8f0">Drag-and-drop files into this window.</h2>
-        <input style="display: none" type="file" id="fileElem" />
+        <!-- <input style="display: none" type="file" id="fileElem" /> -->
       </div>
     </div>
     <div
@@ -113,6 +112,10 @@
 
       handleDrop(event);
     }
+
+    const dropZone = document.getElementById("drop_zone");
+
+    dropZone.addEventListener("drop", dropHandler, false);
 
     function dragOverHandler(event) {
       console.log("File(s) in drop zone");
