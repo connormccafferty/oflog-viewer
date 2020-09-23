@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const multer = require("multer");
 const upload = multer();
-const { spawn } = require("child_process");
+const { PythonShell } = require("python-shell");
 const { launch, connect } = require("hadouken-js-adapter");
 const path = require("path");
 const fs = require("fs");
@@ -36,24 +36,17 @@ app.post("/parse", upload.single("file"), async (req, res) => {
   });
   await uploadPromise;
 
-  // spawn new child process to call the python script
-  const python = spawn("python", [
-    "diagnostics_parser.py",
-    "--noconsole",
-    "--logpath",
-    uploadFilePath,
-    "--outpath",
-    parsedFilePath,
-  ]);
+  let options = {
+    mode: "text",
+    pythonOptions: ["-u"], // get print results in real-time
+    scriptPath: "./scripts",
+    args: ["--logpath", uploadFilePath, "--outpath", parsedFilePath],
+  };
 
-  // collect data from script
-  python.stdout.on("data", function (data) {
-    console.log("python script success");
-  });
-
-  // in close event we are sure that stream from child process is closed
-  python.on("close", (code) => {
-    console.log(`child process close all stdio with code ${code}`);
+  PythonShell.run("diagnostics_parser.py", options, (err, results) => {
+    if (err) throw err;
+    // results is an array consisting of messages collected during execution
+    console.log("results: %j", results);
     // send data to browser
     res.sendFile(path.join(__dirname + parsedFilePath.slice(1)));
   });
