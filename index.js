@@ -3,18 +3,18 @@ const bodyParser = require("body-parser");
 const multer = require("multer");
 const upload = multer();
 const { spawn } = require("child_process");
+const { launch, connect } = require("hadouken-js-adapter");
 const path = require("path");
 const fs = require("fs");
-const { launch, connect } = require("hadouken-js-adapter");
 
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.use(express.static("public"));
-
 const port = 3000;
+
+app.use(express.static("public"));
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname + "/index.html"));

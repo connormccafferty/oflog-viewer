@@ -51,12 +51,7 @@
         "
       >
         <h2 style="color: #e2e8f0">Drag-and-drop files into this window.</h2>
-        <input
-          style="display: none"
-          type="file"
-          id="fileElem"
-          onchange="handleFiles(this.files)"
-        />
+        <input style="display: none" type="file" id="fileElem" />
       </div>
     </div>
     <div
@@ -75,7 +70,7 @@
   </body>
   <script>
     function uploadFile(file) {
-      let url = `/parse`;
+      let url = `http://localhost:3000/parse`;
 
       let formData = new FormData();
 
@@ -115,8 +110,10 @@
       console.log("File(s) dropped");
       // Prevent default behavior (Prevent file from being opened)
       event.preventDefault();
+
       handleDrop(event);
     }
+
     function dragOverHandler(event) {
       console.log("File(s) in drop zone");
 
