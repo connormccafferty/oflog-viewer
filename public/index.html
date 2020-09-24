@@ -80,6 +80,7 @@
       })
         .then(async (response) => {
           const data = await response.json();
+          console.log(response);
           console.log(data);
 
           document.getElementById("upload").classList.add("hidden");
@@ -88,7 +89,7 @@
           let logText = document.createElement("p");
           logText.textContent = JSON.stringify(data, 4, 4);
 
-          document.getElementById("view-log").append(logText);
+          // document.getElementById("view-log").append(logText);
         })
         .catch(console.error);
     }

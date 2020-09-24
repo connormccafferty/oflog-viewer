@@ -23,7 +23,8 @@
   "nodemonConfig": {
     "ignore": [
       "temp/*",
-      "public/*"
+      "public/*",
+      "scripts/*"
     ]
   }
 }

@@ -6,6 +6,7 @@ const { PythonShell } = require("python-shell");
 const { launch, connect } = require("hadouken-js-adapter");
 const path = require("path");
 const fs = require("fs");
+const metaParser = require("./scripts/lp");
 
 const app = express();
 
@@ -21,38 +22,68 @@ app.get("/", (req, res) => {
 });
 
 app.post("/parse", upload.single("file"), async (req, res) => {
-  let uploadFilePath = `./temp/${req.file.originalname}`;
-  let parsedFilePath = `./temp/${req.file.originalname.slice(
-    0,
-    req.file.originalname.length - 4
-  )}.json`;
+  if (!req.file.originalname.includes(".log")) {
+    res.status(422).send("Only accepts .log files");
+  } else {
+    let uploadFilePath = `./temp/${req.file.originalname}`;
+    let parsedFilePath = `./temp/${req.file.originalname.slice(
+      0,
+      req.file.originalname.length - 4
+    )}.json`;
 
-  const uploadPromise = new Promise((resolve, reject) => {
-    try {
-      fs.writeFile(uploadFilePath, req.file.buffer, resolve);
-    } catch (err) {
-      reject(err);
-    }
-  });
-  await uploadPromise;
+    const uploadPromise = new Promise((resolve, reject) => {
+      try {
+        fs.writeFile(uploadFilePath, req.file.buffer, resolve);
+      } catch (err) {
+        reject(err);
+      }
+    });
 
-  let options = {
-    mode: "text",
-    pythonOptions: ["-u"], // get print results in real-time
-    parser: console.log,
-    scriptPath: "./scripts",
-    args: ["--logpath", uploadFilePath, "--outpath", parsedFilePath],
-  };
+    await uploadPromise;
 
-  PythonShell.run("diagnostics_parser.py", options, (err, results) => {
-    if (err) throw err;
-    // results is an array consisting of messages collected during execution
-    console.log("results: %j", results);
-    // send data to browser
-    res.sendFile(path.join(__dirname + parsedFilePath.slice(1)));
-  });
+    // metaParser(
+    //   `/${req.file.originalname}`,
+    //   req.file.originalname.slice(0, req.file.originalname.length - 4)
+    // );
+    const logr = fs.readFileSync(uploadFilePath, "utf8");
+    const { meta, wins, lines } = metaParser(logr);
 
-  res.status(200);
+    // fs.writeFileSync(
+    //   `./temp/${req.file.originalname.slice(
+    //     0,
+    //     req.file.originalname.length - 4
+    //   )}_meta.json`,
+    //   JSON.stringify({
+    //     meta,
+    //     wins,
+    //     lines,
+    //   })
+    // );
+
+    let options = {
+      mode: "text",
+      pythonOptions: ["-u"], // get print results in real-time
+      parser: console.log,
+      scriptPath: "./scripts",
+      args: ["--logpath", uploadFilePath, "--outpath", parsedFilePath],
+    };
+
+    PythonShell.run("diagnostics_parser.py", options, (err, results) => {
+      if (err) {
+        res.status(422).send(err);
+      } else {
+        // results is an array consisting of messages collected during execution
+        // console.log("results: %j", results);
+
+        const parsedLog = fs.readFileSync(parsedFilePath, {
+          encoding: "utf-8",
+        });
+
+        // send data to browser
+        res.json({ meta, wins, lines, ...JSON.parse(parsedLog) });
+      }
+    });
+  }
 });
 
 const manifestUrl = `http://localhost:${port}/app.json`;
