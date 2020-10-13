@@ -1,0 +1,13 @@
+{
+  "startup_app": {
+    "name": "oflog-viewer",
+    "url": "http://localhost:3000/",
+    "uuid": "oflog-viewer",
+    "autoShow": true
+  },
+  "runtime": {
+    "arguments": "--disable-web-security --inspect --security-realm=OFLOG_VIEWER",
+    "version": "stable"
+  },
+  "shortcut": {}
+}
